@@ -29,8 +29,14 @@ const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
   const githubStars = await getGithubRepoStars();
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen w-full">
-      <div className="flex justify-end items-center space-x-5 w-full p-5">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-white to-primary/5 dark:from-background dark:to-primary/5 relative">
+      {/* Background decoration */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-96 w-96 rounded-full bg-secondary/10 blur-3xl" />
+      </div>
+
+      <div className="flex justify-end items-center space-x-5 w-full p-5 relative z-10">
         <Link
           href={process.env.NEXT_PUBLIC_GITHUB_REPO_URL || "#"}
           className=" border rounded-md p-2"
@@ -49,7 +55,7 @@ const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
         </div>
         <ThemeToggle />
       </div>
-      <div className="flex items-center grow h-full overflow-hidden">
+      <div className="flex items-center justify-center flex-1 w-full p-4 relative z-10">
         {children}
       </div>
       <Footer />

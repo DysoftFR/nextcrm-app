@@ -93,9 +93,9 @@ export function LoginComponent() {
   };
 
   return (
-    <Card className="shadow-lg my-5">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Login</CardTitle>
+    <Card className="w-full shadow-xl border-border bg-card/80 backdrop-blur-sm z-10 transition-all duration-300 hover:shadow-2xl">
+      <CardHeader className="space-y-1 text-center">
+        <CardTitle className="text-2xl font-bold tracking-tight text-foreground">Login</CardTitle>
         <CardDescription>Choose your sign-in method</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
@@ -103,7 +103,7 @@ export function LoginComponent() {
           variant="outline"
           onClick={loginWithGoogle}
           disabled={isLoading}
-          className="w-full"
+          className="w-full relative py-5 bg-white text-gray-700 hover:bg-gray-50 border-gray-300 font-medium"
         >
           <Icons.google className="mr-2 h-4 w-4" />
           Continue with Google
@@ -134,7 +134,11 @@ export function LoginComponent() {
                 onKeyDown={(e) => e.key === "Enter" && sendOtp()}
               />
             </div>
-            <Button onClick={sendOtp} disabled={isLoading || !email}>
+            <Button 
+              onClick={sendOtp} 
+              disabled={isLoading || !email}
+              className="w-full bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:opacity-90 hover:scale-[1.02] transition-all duration-200"
+            >
               <MailIcon className="mr-2 h-4 w-4" />
               Send verification code
             </Button>
@@ -163,7 +167,11 @@ export function LoginComponent() {
                 </InputOTPGroup>
               </InputOTP>
             </div>
-            <Button onClick={verifyOtp} disabled={isLoading || otp.length !== 6}>
+            <Button 
+              onClick={verifyOtp} 
+              disabled={isLoading || otp.length !== 6}
+              className="w-full bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:opacity-90 hover:scale-[1.02] transition-all duration-200"
+            >
               Verify and sign in
             </Button>
             <Button
