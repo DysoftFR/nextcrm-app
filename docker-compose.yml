@@ -98,7 +98,7 @@ services:
       INNGEST_BASE_URL: http://inngest:8288
 
       # App
-      NEXT_PUBLIC_APP_NAME: NextCRM
+      NEXT_PUBLIC_APP_NAME: Le Circle Influent Sales
       NEXT_PUBLIC_APP_URL: http://localhost:3000
 
       # Initial admin account (created on first run by the seed script).
