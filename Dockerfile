@@ -3,7 +3,9 @@
 # ============================================
 FROM node:22-alpine AS deps
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Pin pnpm 9 — pnpm 10 introduces onlyBuiltDependencies lockfile checks
+# that fail when the lockfile was generated with a different allowlist.
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
 
@@ -16,7 +18,7 @@ RUN pnpm install --frozen-lockfile
 # ============================================
 FROM node:22-alpine AS build
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
 
@@ -112,9 +114,9 @@ RUN mkdir -p /app/node_modules/@prisma && \
     cp -rn /opt/tools/node_modules/@prisma/adapter-pg /app/node_modules/@prisma/ 2>/dev/null || true && \
     cp -rn /opt/tools/node_modules/pg-cloudflare /app/node_modules/ 2>/dev/null || true
 
-# Copy entrypoint
+# Copy entrypoint and strip Windows line endings (CRLF → LF)
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x docker-entrypoint.sh
+RUN sed -i 's/\r$//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh
 
 # Set ownership for /app (standalone output + prisma)
 # and /opt/tools so the non-root nextjs user can use them.
