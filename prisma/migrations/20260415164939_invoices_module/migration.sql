@@ -1,3 +1,12 @@
+-- Drop the legacy invoices tables created in 0_init so we can replace
+-- them with the new invoices module schema.
+DROP TABLE IF EXISTS "DocumentsToInvoices" CASCADE;
+DROP TABLE IF EXISTS "Invoices" CASCADE;
+DROP TABLE IF EXISTS "invoice_States" CASCADE;
+
+-- Drop legacy indexes (already gone with CASCADE above, but be explicit)
+-- No-op if they don't exist.
+
 -- CreateEnum
 CREATE TYPE "Invoice_Status" AS ENUM ('DRAFT', 'ISSUED', 'SENT', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED', 'DISPUTED', 'REFUNDED', 'WRITTEN_OFF');
 
