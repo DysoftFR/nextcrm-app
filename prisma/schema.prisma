@@ -993,7 +993,7 @@ model UserOnboarding {
   userId               String   @unique @db.Uuid
   fullName             String
   phone                String
-  yearsOfExperience    Int
+  yearsOfExperience    String
   industries           String[]
   employmentStatus     String
   country              String
