@@ -58,6 +58,9 @@ export default async function AppLayout({
   const user = session?.user;
 
   if (user?.userStatus === "PENDING") {
+    if (!user.onboardingCompleted) {
+      return redirect("/onboarding");
+    }
     return redirect("/pending");
   }
 
