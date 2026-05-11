@@ -4,6 +4,7 @@
 /node_modules
 /node-compile-cache
 /.pnp
+.pnpm-store/*
 .pnp.js
 
 
@@ -76,3 +77,4 @@ v8-compile-cache-*/
 
 #superpowers plugin
 .superpowers/
+
