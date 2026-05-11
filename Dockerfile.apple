@@ -1,0 +1,93 @@
+# ============================================
+# Stage 1: Install dependencies
+# ============================================
+FROM oven/bun:1-alpine AS deps
+
+WORKDIR /app
+COPY package.json ./
+RUN bun install
+
+# ============================================
+# Stage 2: Build the application
+# ============================================
+FROM oven/bun:1-alpine AS build
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+ENV DATABASE_URL="postgresql://placeholder:placeholder@placeholder:5432/placeholder"
+ENV INNGEST_ID="nextcrm-build"
+ENV INNGEST_APP_NAME="NextCRM-Build"
+ENV INNGEST_EVENT_KEY="build-placeholder"
+ENV INNGEST_SIGNING_KEY="build-placeholder"
+ENV BETTER_AUTH_SECRET="build-time-placeholder-secret-replace-at-runtime"
+ENV BETTER_AUTH_URL="http://localhost:3000"
+ENV MINIO_ENDPOINT="http://placeholder:9000"
+ENV MINIO_PORT="9000"
+ENV MINIO_BUCKET="placeholder"
+ENV MINIO_USE_SSL="false"
+ENV MINIO_ACCESS_KEY="placeholder"
+ENV MINIO_SECRET_KEY="placeholder"
+ENV NEXT_PUBLIC_MINIO_ENDPOINT="http://placeholder:9000"
+ENV EMAIL_ENCRYPTION_KEY="0000000000000000000000000000000000000000000000000000000000000000"
+ENV OPENAI_API_KEY="sk-placeholder-for-build"
+ENV RESEND_API_KEY="re_placeholder_for-build"
+ENV SKIP_ENV_VALIDATION=1
+
+RUN bunx prisma generate
+RUN bunx next build
+
+# ============================================
+# Stage 3: Production runner (no network calls)
+# ============================================
+FROM oven/bun:1-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Standalone Next.js output
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
+
+# Prisma schema + migrations for migrate deploy at runtime
+COPY --from=build /app/prisma ./prisma
+
+# Full node_modules from build (includes prisma CLI, tsx, pg, generated client)
+COPY --from=build /app/node_modules ./node_modules
+
+RUN printf '%s\n' \
+    'import { defineConfig, env } from "prisma/config";' \
+    '' \
+    'export default defineConfig({' \
+    '  datasource: {' \
+    '    url: env("DATABASE_URL"),' \
+    '  },' \
+    '  migrations: {' \
+    '    seed: "tsx prisma/seeds/seed.ts",' \
+    '  },' \
+    '});' \
+    > /app/prisma.config.ts
+
+COPY apple-container/entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh
+
+RUN chown -R nextjs:nodejs /app
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+ENV PATH="/app/node_modules/.bin:$PATH"
+ENV NODE_PATH="/app/node_modules"
+
+ENTRYPOINT ["./docker-entrypoint.sh"]
