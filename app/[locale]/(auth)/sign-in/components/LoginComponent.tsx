@@ -137,7 +137,7 @@ export function LoginComponent() {
             <Button 
               onClick={sendOtp} 
               disabled={isLoading || !email}
-              className="w-full bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:opacity-90 hover:scale-[1.02] transition-all duration-200"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200"
             >
               <MailIcon className="mr-2 h-4 w-4" />
               Send verification code
@@ -170,7 +170,7 @@ export function LoginComponent() {
             <Button 
               onClick={verifyOtp} 
               disabled={isLoading || otp.length !== 6}
-              className="w-full bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:opacity-90 hover:scale-[1.02] transition-all duration-200"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200"
             >
               Verify and sign in
             </Button>
