@@ -9,6 +9,7 @@ jest.mock("@/lib/prisma", () => ({
 import { getSession } from "@/lib/auth-server";
 import { prismadb } from "@/lib/prisma";
 import { submitOnboarding } from "../index";
+import type { InputType } from "../types";
 
 const gs = getSession as jest.MockedFunction<typeof getSession>;
 const create = prismadb.userOnboarding.create as jest.MockedFunction<
@@ -18,12 +19,12 @@ const update = prismadb.users.update as jest.MockedFunction<
   typeof prismadb.users.update
 >;
 
-const validInput = {
+const validInput: InputType = {
   fullName: "Jane Doe",
   phone: "+1234567890",
-  yearsOfExperience: 3,
+  yearsOfExperience: "1–2 years",
   industries: ["SaaS", "B2B"],
-  employmentStatus: "employed" as const,
+  employmentStatus: "employed",
   country: "France",
   motivation: "I want to grow my sales career.",
 };

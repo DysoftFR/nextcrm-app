@@ -25,6 +25,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Slider } from "@/components/ui/slider";
+import { CountrySelect } from "./CountrySelect";
+import { YEAR_RANGES } from "@/actions/onboarding/schema";
 
 const INDUSTRY_KEYS = [
   "SaaS",
@@ -60,7 +63,7 @@ export function OnboardingForm({ defaultName }: Props) {
     defaultValues: {
       fullName: defaultName,
       phone: "",
-      yearsOfExperience: 0,
+      yearsOfExperience: "< 1 year",
       industries: [],
       employmentStatus: "employed",
       country: "",
@@ -123,26 +126,41 @@ export function OnboardingForm({ defaultName }: Props) {
           )}
         />
 
-        {/* Years of experience */}
+        {/* Years of sales experience */}
         <FormField
           control={form.control}
           name="yearsOfExperience"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("yearsOfExperience")}</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min={0}
-                  max={50}
-                  {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
-                  disabled={isPending}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const idx = YEAR_RANGES.indexOf(field.value as typeof YEAR_RANGES[number]);
+            return (
+              <FormItem>
+                <FormLabel>Years of sales experience</FormLabel>
+                <FormControl>
+                  <div className="space-y-3 pt-1">
+                    <Slider
+                      min={0}
+                      max={YEAR_RANGES.length - 1}
+                      step={1}
+                      value={[idx === -1 ? 0 : idx]}
+                      onValueChange={([i]) => field.onChange(YEAR_RANGES[i])}
+                      disabled={isPending}
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground select-none">
+                      {YEAR_RANGES.map((label) => (
+                        <span
+                          key={label}
+                          className={label === field.value ? "font-semibold text-foreground" : ""}
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         {/* Industries multi-select */}
@@ -221,9 +239,13 @@ export function OnboardingForm({ defaultName }: Props) {
           name="country"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("country")}</FormLabel>
+              <FormLabel>Country / region of residence</FormLabel>
               <FormControl>
-                <Input {...field} disabled={isPending} />
+                <CountrySelect
+                  value={field.value}
+                  onChange={field.onChange}
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
