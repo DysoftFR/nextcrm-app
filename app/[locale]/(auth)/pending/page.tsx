@@ -45,7 +45,7 @@ const PendingPage = async ({ searchParams }: Props) => {
         </div>
       )}
 
-      {adminUsers.length > 0 && (
+      {!isJustSubmitted && adminUsers.length > 0 && (
         <div className="w-full flex flex-col space-y-2">
           <h2 className="text-lg font-semibold text-center">{t("adminListTitle")}</h2>
           {adminUsers.map((admin: Users) => (
@@ -64,13 +64,15 @@ const PendingPage = async ({ searchParams }: Props) => {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row space-x-2 justify-center items-center">
-        <Button asChild variant="outline">
-          <Link href="/sign-in">{t("loginAnother")}</Link>
-        </Button>
-        <p>or</p>
-        <TryAgain />
-      </div>
+      {!isJustSubmitted && (
+        <div className="flex flex-col md:flex-row space-x-2 justify-center items-center">
+          <Button asChild variant="outline">
+            <Link href="/sign-in">{t("loginAnother")}</Link>
+          </Button>
+          <p>or</p>
+          <TryAgain />
+        </div>
+      )}
     </div>
   );
 };
