@@ -1001,6 +1001,8 @@ model UserOnboarding {
   submittedAt          DateTime @default(now())
 
   user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model crm_AuditLog {
