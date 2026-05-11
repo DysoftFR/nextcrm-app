@@ -1,7 +1,13 @@
 # ============================================
 # Stage 1: Install dependencies
 # ============================================
-FROM node:22-alpine AS deps
+# Debian/glibc is used for every Node stage so native packages are built
+# against the same libc that runs Next.js and Prisma.
+FROM node:22-slim AS deps
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl openssl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Pin pnpm 9 — pnpm 10 introduces onlyBuiltDependencies lockfile checks
 # that fail when the lockfile was generated with a different allowlist.
@@ -16,7 +22,9 @@ RUN pnpm install --frozen-lockfile
 # ============================================
 # Stage 2: Build the application
 # ============================================
-FROM node:22-alpine AS build
+# node:22-slim (Debian/glibc) required - Turbopack native binaries
+# are compiled for glibc and panic on Alpine's musl libc.
+FROM node:22-slim AS build
 
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
@@ -44,7 +52,8 @@ ENV MINIO_SECRET_KEY="placeholder"
 ENV NEXT_PUBLIC_MINIO_ENDPOINT="http://placeholder:9000"
 ENV EMAIL_ENCRYPTION_KEY="0000000000000000000000000000000000000000000000000000000000000000"
 ENV OPENAI_API_KEY="sk-placeholder-for-build"
-ENV RESEND_API_KEY="re_placeholder_for_build"
+ENV ENGAGEO_BASE_URL="http://placeholder"
+ENV ENGAGEO_MESSAGING_API_KEY="eng_live_placeholder_for_build"
 ENV SKIP_ENV_VALIDATION=1
 
 RUN pnpm prisma generate
@@ -53,9 +62,11 @@ RUN pnpm next build
 # ============================================
 # Stage 3: Production runner
 # ============================================
-FROM node:22-alpine AS runner
+FROM node:22-slim AS production
 
-RUN apk add --no-cache curl postgresql-client
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl postgresql-client openssl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Prisma CLI + tsx + dotenv into a SEPARATE /opt/tools directory.
 # This avoids conflicts with Next.js standalone node_modules (which has
@@ -78,8 +89,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create non-root user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs --home-dir /app --shell /usr/sbin/nologin nextjs
 
 # Copy standalone build output (includes its own minimal node_modules
 # with @prisma/client the app needs at runtime)
@@ -134,3 +145,17 @@ ENV PATH="/opt/tools/node_modules/.bin:$PATH"
 ENV NODE_PATH="/opt/tools/node_modules"
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
+
+# ============================================
+# Stage 4: Development runner (default image)
+# ============================================
+FROM deps AS dev
+
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3020
+ENV HOSTNAME="0.0.0.0"
+
+EXPOSE 3020
+
+CMD ["pnpm", "dev"]
