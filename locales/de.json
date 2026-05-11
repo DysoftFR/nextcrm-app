@@ -605,5 +605,45 @@
     "dashboard": "Dashboard",
     "profileSettings": "Profileinstellungen",
     "logout": "Abmelden"
+  },
+  "OnboardingPage": {
+    "title": "Bewerbung abschließen",
+    "description": "Erzählen Sie uns mehr über sich, damit wir Ihre Bewerbung prüfen können.",
+    "fullName": "Vollständiger Name",
+    "phone": "Telefonnummer",
+    "yearsOfExperience": "Jahre Verkaufserfahrung",
+    "industries": "Branche / Sektor",
+    "industriesHint": "Alles Zutreffende auswählen",
+    "employmentStatus": "Aktueller Beschäftigungsstatus",
+    "employmentStatusEmployed": "Angestellt",
+    "employmentStatusFreelance": "Freiberuflich",
+    "employmentStatusLooking": "Auf Jobsuche",
+    "country": "Land / Region des Wohnsitzes",
+    "motivation": "Warum möchten Sie der Plattform beitreten?",
+    "motivationPlaceholder": "Teilen Sie Ihre Motivation (optional)...",
+    "submit": "Bewerbung einreichen",
+    "submitting": "Wird eingereicht...",
+    "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+    "industriesList": {
+      "SaaS": "SaaS",
+      "RealEstate": "Immobilien",
+      "Retail": "Einzelhandel",
+      "B2B": "B2B",
+      "B2C": "B2C",
+      "Finance": "Finanzen",
+      "Healthcare": "Gesundheitswesen",
+      "Manufacturing": "Fertigung",
+      "Consulting": "Beratung",
+      "Other": "Sonstiges"
+    }
+  },
+  "PendingPage": {
+    "title": "Bewerbung eingereicht",
+    "submittedHeading": "Ihre Bewerbung ist vollständig!",
+    "submittedBody": "Vielen Dank für Ihre Bewerbung. Ihr Konto wartet auf die Genehmigung durch einen Administrator. Sie erhalten eine E-Mail-Benachrichtigung, sobald Ihr Konto genehmigt wurde.",
+    "pendingHeading": "Konto wartet auf Genehmigung",
+    "pendingBody": "Ihr Konto wartet auf Genehmigung. Bitten Sie jemanden in Ihrer Organisation, Ihr Konto zu genehmigen, oder wenden Sie sich an den technischen Support.",
+    "adminListTitle": "Administratorenliste",
+    "loginAnother": "Mit einem anderen Konto anmelden"
   }
 }

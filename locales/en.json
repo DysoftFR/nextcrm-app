@@ -733,5 +733,45 @@
     "dashboard": "Dashboard",
     "profileSettings": "Profile settings",
     "logout": "Log out"
+  },
+  "OnboardingPage": {
+    "title": "Complete Your Application",
+    "description": "Tell us more about yourself so we can review your application.",
+    "fullName": "Full name",
+    "phone": "Phone number",
+    "yearsOfExperience": "Years of sales experience",
+    "industries": "Industry / sector",
+    "industriesHint": "Select all that apply",
+    "employmentStatus": "Current employment status",
+    "employmentStatusEmployed": "Employed",
+    "employmentStatusFreelance": "Freelance",
+    "employmentStatusLooking": "Looking for opportunities",
+    "country": "Country / region of residence",
+    "motivation": "Why do you want to join the platform?",
+    "motivationPlaceholder": "Share your motivation (optional)...",
+    "submit": "Submit Application",
+    "submitting": "Submitting...",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "industriesList": {
+      "SaaS": "SaaS",
+      "RealEstate": "Real Estate",
+      "Retail": "Retail",
+      "B2B": "B2B",
+      "B2C": "B2C",
+      "Finance": "Finance",
+      "Healthcare": "Healthcare",
+      "Manufacturing": "Manufacturing",
+      "Consulting": "Consulting",
+      "Other": "Other"
+    }
+  },
+  "PendingPage": {
+    "title": "Application Submitted",
+    "submittedHeading": "Your application is complete!",
+    "submittedBody": "Thank you for applying. Your account is awaiting admin approval. You will receive an email notification once your account is approved.",
+    "pendingHeading": "Account pending approval",
+    "pendingBody": "Your account is awaiting approval. Ask someone in your organisation to approve your account, or contact tech support.",
+    "adminListTitle": "Admin list",
+    "loginAnother": "Log in with another account"
   }
 }

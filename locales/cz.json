@@ -716,5 +716,45 @@
     "dashboard": "Přehled",
     "profileSettings": "Nastavení profilu",
     "logout": "Odhlásit se"
+  },
+  "OnboardingPage": {
+    "title": "Dokončete svou přihlášku",
+    "description": "Řekněte nám o sobě více, abychom mohli vaši žádost posoudit.",
+    "fullName": "Celé jméno",
+    "phone": "Telefonní číslo",
+    "yearsOfExperience": "Roky zkušeností v prodeji",
+    "industries": "Odvětví / sektor",
+    "industriesHint": "Vyberte vše, co se vztahuje",
+    "employmentStatus": "Aktuální pracovní status",
+    "employmentStatusEmployed": "Zaměstnaný",
+    "employmentStatusFreelance": "Freelancer",
+    "employmentStatusLooking": "Hledám příležitosti",
+    "country": "Země / region bydliště",
+    "motivation": "Proč se chcete přidat k platformě?",
+    "motivationPlaceholder": "Sdílejte svou motivaci (volitelné)...",
+    "submit": "Odeslat přihlášku",
+    "submitting": "Odesílání...",
+    "errorGeneric": "Něco se pokazilo. Zkuste to prosím znovu.",
+    "industriesList": {
+      "SaaS": "SaaS",
+      "RealEstate": "Reality",
+      "Retail": "Maloobchod",
+      "B2B": "B2B",
+      "B2C": "B2C",
+      "Finance": "Finance",
+      "Healthcare": "Zdravotnictví",
+      "Manufacturing": "Výroba",
+      "Consulting": "Poradenství",
+      "Other": "Jiné"
+    }
+  },
+  "PendingPage": {
+    "title": "Přihláška odeslána",
+    "submittedHeading": "Vaše přihláška je kompletní!",
+    "submittedBody": "Děkujeme za přihlášku. Váš účet čeká na schválení správcem. Po schválení obdržíte e-mailové oznámení.",
+    "pendingHeading": "Účet čeká na schválení",
+    "pendingBody": "Váš účet čeká na schválení. Požádejte někoho ve vaší organizaci o schválení účtu nebo kontaktujte technickou podporu.",
+    "adminListTitle": "Seznam administrátorů",
+    "loginAnother": "Přihlásit se jiným účtem"
   }
 }
