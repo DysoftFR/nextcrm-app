@@ -202,7 +202,7 @@ export function OnboardingForm({ defaultName }: Props) {
                 >
                   {EMPLOYMENT_OPTIONS.map(({ value, labelKey }) => (
                     <div key={value} className="flex items-center space-x-2">
-                      <RadioGroupItem value={value} id={`emp-${value}`} />
+                      <RadioGroupItem value={value} id={`emp-${value}`} disabled={isPending} />
                       <Label htmlFor={`emp-${value}`} className="font-normal cursor-pointer">
                         {t(labelKey)}
                       </Label>
