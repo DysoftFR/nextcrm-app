@@ -38,22 +38,36 @@ describe("submitOnboarding", () => {
     expect(create).not.toHaveBeenCalled();
   });
 
+  it("rejects non-PENDING users", async () => {
+    gs.mockResolvedValue({ user: { id: "u1", userStatus: "ACTIVE", onboardingCompleted: true } } as any);
+    const result = await submitOnboarding(validInput);
+    expect(result.error).toBe("Unauthorized");
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("rejects already-submitted users", async () => {
+    gs.mockResolvedValue({ user: { id: "u1", userStatus: "PENDING", onboardingCompleted: true } } as any);
+    const result = await submitOnboarding(validInput);
+    expect(result.error).toBe("Already submitted");
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it("returns fieldErrors when industries is empty", async () => {
-    gs.mockResolvedValue({ user: { id: "u1", userStatus: "PENDING" } } as any);
+    gs.mockResolvedValue({ user: { id: "u1", userStatus: "PENDING", onboardingCompleted: false } } as any);
     const result = await submitOnboarding({ ...validInput, industries: [] });
     expect(result.fieldErrors?.industries).toBeDefined();
     expect(create).not.toHaveBeenCalled();
   });
 
   it("returns fieldErrors when fullName is empty", async () => {
-    gs.mockResolvedValue({ user: { id: "u1", userStatus: "PENDING" } } as any);
+    gs.mockResolvedValue({ user: { id: "u1", userStatus: "PENDING", onboardingCompleted: false } } as any);
     const result = await submitOnboarding({ ...validInput, fullName: "" });
     expect(result.fieldErrors?.fullName).toBeDefined();
     expect(create).not.toHaveBeenCalled();
   });
 
   it("persists onboarding and flips flag on success", async () => {
-    gs.mockResolvedValue({ user: { id: "u1", userStatus: "PENDING" } } as any);
+    gs.mockResolvedValue({ user: { id: "u1", userStatus: "PENDING", onboardingCompleted: false } } as any);
     create.mockResolvedValue({ id: "o1" } as any);
     update.mockResolvedValue({} as any);
 

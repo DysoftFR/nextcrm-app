@@ -9,6 +9,8 @@ import { FieldErrors } from "@/lib/create-safe-action";
 export async function submitOnboarding(data: InputType): Promise<ReturnType> {
   const session = await getSession();
   if (!session) return { error: "Unauthorized" };
+  if (session.user.userStatus !== "PENDING") return { error: "Unauthorized" };
+  if (session.user.onboardingCompleted) return { error: "Already submitted" };
 
   const userId = session.user.id;
 
