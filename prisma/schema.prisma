@@ -936,9 +936,10 @@ model Users {
   username         String?
   userStatus       ActiveStatus @default(PENDING)
   userLanguage     Language     @default(en)
-  banned           Boolean      @default(false)
-  banReason        String?
-  banExpires       DateTime?
+  banned                Boolean      @default(false)
+  banReason             String?
+  banExpires            DateTime?
+  onboardingCompleted   Boolean      @default(false)
 
   tasksComment         tasksComments[]
   created_by_documents Documents[]           @relation("created_by_user")
@@ -977,6 +978,7 @@ model Users {
   invoicePayments              Invoice_Payments[]    @relation("InvoicePaymentCreatedBy")
   invoiceAttachments           Invoice_Attachments[] @relation("InvoiceAttachmentUploadedBy")
   invoiceActivity              Invoice_Activity[]    @relation("InvoiceActivityActor")
+  onboarding                   UserOnboarding?
 
   @@index([email])
   @@index([userStatus])
@@ -984,6 +986,21 @@ model Users {
   @@index([role])
   @@index([created_on])
   @@index([lastLoginAt])
+}
+
+model UserOnboarding {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @unique @db.Uuid
+  fullName             String
+  phone                String
+  yearsOfExperience    Int
+  industries           String[]
+  employmentStatus     String
+  country              String
+  motivation           String?
+  submittedAt          DateTime @default(now())
+
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model crm_AuditLog {
