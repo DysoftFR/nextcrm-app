@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
+import { BiscoitoLogo } from "@/components/BiscoitoLogo";
 import getDashboardMenuItem from "./menu-items/Dashboard";
 import getCrmMenuItem from "./menu-items/Crm";
 import getProjectsMenuItem from "./menu-items/Projects";
@@ -130,28 +131,16 @@ export function AppSidebar({
         <div
           className={cn(
             "flex items-center py-1",
-            isExpanded ? "gap-x-4" : "justify-center",
+            isExpanded ? "px-2" : "justify-center",
           )}
         >
-          {/* "N" Branding Symbol with rotation animation */}
-          <div
-            className={cn(
-              "flex-shrink-0 border rounded-full px-4 py-2 transition-transform duration-500",
-              isExpanded && "rotate-[360deg]",
-            )}
-          >
-            N
-          </div>
-
-          {/* App Name - visible when expanded, hidden when collapsed */}
-          <h1
-            className={cn(
-              "origin-left font-medium text-xl transition-all overflow-hidden whitespace-nowrap",
-              !isExpanded ? "w-0 opacity-0" : "w-auto opacity-100",
-            )}
-          >
-            {process.env.NEXT_PUBLIC_APP_NAME || "NextCRM"}
-          </h1>
+          {isExpanded ? (
+            <BiscoitoLogo className="h-8 w-auto" />
+          ) : (
+            <div className="flex-shrink-0 border rounded-full px-2 py-1 text-sm font-bold">
+              {(process.env.NEXT_PUBLIC_APP_NAME || "B")[0]}
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
