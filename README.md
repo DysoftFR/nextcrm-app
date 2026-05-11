@@ -278,7 +278,7 @@ Available soon at: http://docs.nextcrm.io
 1. Install the preset:
 
    ```sh
-   pnpm install
+   bun install
    ```
 
 1. Copy the environment variables to .env
@@ -287,52 +287,38 @@ Available soon at: http://docs.nextcrm.io
    cp .env.example .env
    ```
 
-   ```sh
-   cp .env.local.example .env.local
-   ```
-
    **.env**
 
-   > > - You will need a PostgreSQL connection string for Prisma ORM
-   > > - Example: `DATABASE_URL="postgresql://user:pass@localhost:5432/nextcrm?schema=public"`
-   > > - Requires PostgreSQL 17+ with the **pgvector** extension enabled
-
-   **.env.local**
-
-   > > - BETTER_AUTH_SECRET - for auth
-   > > - uploadthings - for storing files
-   > > - openAI - for embeddings and project management assistant *(optional — can be set via admin panel instead)*
-   > > - Firecrawl - for contact/target enrichment *(optional — can be set via admin panel instead)*
-   > > - SMTP and IMAP for emails
-   > > - Inngest - for background embedding jobs
-   > > - `EMAIL_ENCRYPTION_KEY` - required for encrypting API keys stored in the database
+   > > - The default file points the app at Docker-hosted Postgres, Redis, MinIO, and Inngest on localhost.
+   > > - Requires PostgreSQL 17+ with the **pgvector** extension enabled.
+   > > - Optional integrations such as OpenAI, Firecrawl, Engageo, SMTP, and IMAP can stay blank for local development.
 
 1. Init Prisma
 
    ```sh
-    pnpm prisma generate
-    pnpm prisma migrate deploy
+    bunx prisma generate
+    bunx prisma migrate deploy
    ```
 
 1. Import initial data from initial-data folder
 
    ```sh
-   pnpm prisma db seed
+   bunx prisma db seed
    ```
 
 1. Run app on local
 
    ```sh
-   pnpm run dev
+   bun dev
    ```
 
-1. http://localhost:3000
+1. http://localhost:3020
 
 </details>
 
-## Docker Installation (Recommended for Self-Hosting)
+## Docker Development
 
-The fastest way to run NextCRM is with Docker Compose. The provided `docker-compose.yml` bundles everything you need: the app, PostgreSQL (with pgvector), MinIO for file storage, and Inngest for background jobs. No manual setup of databases, buckets, or migrations — it all happens automatically on first start.
+The local development setup runs the full stack in Docker: Next.js, PostgreSQL with pgvector, Redis, MinIO, and Inngest. The app container bind-mounts this repo at `/app`, so source edits on your host trigger hot reload.
 
 ### Quick Start
 
@@ -341,10 +327,10 @@ git clone https://github.com/pdovhomilja/nextcrm-app.git
 cd nextcrm-app
 cp .env.docker .env
 nano .env                # set ADMIN_EMAIL to a real email you own
-docker compose up -d
+docker compose up --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — the app is ready, the schema is migrated, and the seeded admin user matches the `ADMIN_EMAIL` you set.
+Open [http://localhost:3020](http://localhost:3020). On first start the app container installs dependencies into a Docker volume, runs Prisma generate, applies migrations, seeds the database, then starts Next.js dev mode.
 
 > [!IMPORTANT]
 > NextCRM uses **passwordless Email OTP** for login. You MUST set `ADMIN_EMAIL` to an address you control AND provide a `RESEND_API_KEY` (or another email provider) so OTP codes can actually be delivered. Without an email provider, you can still log in by reading the OTP straight from the database — convenient for first-time testing, not for production.
@@ -353,25 +339,26 @@ Open [http://localhost:3000](http://localhost:3000) — the app is ready, the sc
 
 | Service | Purpose | Exposed |
 |---|---|---|
-| `app` | NextCRM (Next.js standalone build) | `localhost:3000` |
-| `postgres` | PostgreSQL 17 with pgvector | internal only |
-| `minio` | S3-compatible object storage | internal only |
-| `inngest` | Background job runner | internal only |
+| `postgres` | PostgreSQL 17 with pgvector | `localhost:5432` |
+| `redis` | Redis cache/rate-limit backing service | `localhost:6379` |
+| `minio` | S3-compatible object storage | `localhost:9000`, console on `localhost:9001` |
+| `inngest` | Background job runner | `localhost:8288` |
+| `app` | Next.js dev server with bind-mounted source | `localhost:3020` |
 
-Only port `3000` is exposed to the host. Everything else stays on the internal Docker network — secure by default. Uncomment the relevant `ports:` blocks in `docker-compose.yml` if you need direct access (e.g. for psql or the MinIO console).
+The app uses named Docker volumes for `/app/node_modules`, `/app/.next`, and the pnpm store. That keeps generated dependencies and Turbopack output out of your host checkout while preserving hot reload for source files.
 
 ### Configuring environment variables
 
-You **never edit `Dockerfile` or `docker-compose.yml`** to add your secrets. Instead, create a `.env` file in the project root — Docker Compose reads it automatically and injects the values into the container.
+You **never edit `Dockerfile` or `docker-compose.yml`** to add your secrets. Instead, create a `.env` file in the project root. Docker Compose and Bun both read it automatically.
 
 ```sh
 cp .env.docker .env
 nano .env       # set ADMIN_EMAIL, internal service passwords, and any optional API keys
-docker compose up -d
+docker compose up --build
 ```
 
 > [!WARNING]
-> The bundled Postgres and MinIO containers ship with a placeholder password (`changeme`) so the stack works on first run. The internal services are not exposed to the host network — only the app on port 3000 is reachable — so this is safe for local experimentation. **For any deployment beyond your laptop**, set strong values for `POSTGRES_PASSWORD` and `MINIO_ROOT_PASSWORD` in your `.env` file before starting the stack.
+> The bundled Postgres and MinIO containers ship with a placeholder password (`changeme`) so the stack works on first run. These services are exposed on localhost for local development. **For any deployment beyond your laptop**, set strong values for `POSTGRES_PASSWORD` and `MINIO_ROOT_PASSWORD` in your `.env` file before starting the stack.
 
 The `.env.docker` file lists every supported variable with comments. Beyond the internal service passwords, you only need to add values for **optional external integrations** you want to enable:
 
