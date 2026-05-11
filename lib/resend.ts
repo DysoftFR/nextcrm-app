@@ -1,20 +1,20 @@
-import { Resend } from "resend";
 import { prismadb } from "./prisma";
+import { createEngageoClient } from "./engageo";
 
 export default async function resendHelper() {
-  const resendKey = await prismadb.systemServices.findFirst({
-    where: {
-      name: "resend_smtp",
-    },
+  const engageoRecord = await prismadb.systemServices.findFirst({
+    where: { name: "engageo" },
   });
 
-  const apiKey = process.env.RESEND_API_KEY || resendKey?.serviceKey;
+  const apiKey =
+    process.env.ENGAGEO_MESSAGING_API_KEY || engageoRecord?.serviceKey;
+  const baseUrl = process.env.ENGAGEO_BASE_URL;
 
-  if (!apiKey) {
-    throw new Error("Resend API key is not configured. Please add it in Admin settings or set RESEND_API_KEY environment variable.");
+  if (!apiKey || !baseUrl) {
+    throw new Error(
+      "Engageo is not configured. Set ENGAGEO_BASE_URL and ENGAGEO_MESSAGING_API_KEY environment variables."
+    );
   }
 
-  const resend = new Resend(apiKey);
-
-  return resend;
+  return createEngageoClient(baseUrl, apiKey);
 }

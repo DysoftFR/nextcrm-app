@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { createEngageoClient } from "./engageo";
 
 interface EmailOptions {
   from: string | undefined;
@@ -11,21 +11,27 @@ interface EmailOptions {
 export default async function sendEmail(
   emailOptions: EmailOptions
 ): Promise<void> {
-  const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD,
-    },
+  const apiKey = process.env.ENGAGEO_MESSAGING_API_KEY;
+  const baseUrl = process.env.ENGAGEO_BASE_URL;
+
+  if (!apiKey || !baseUrl) {
+    console.error("Engageo is not configured. Set ENGAGEO_BASE_URL and ENGAGEO_MESSAGING_API_KEY.");
+    return;
+  }
+
+  const client = createEngageoClient(baseUrl, apiKey);
+
+  const { error } = await client.emails.send({
+    from: emailOptions.from ?? process.env.EMAIL_FROM ?? "noreply@example.com",
+    to: emailOptions.to,
+    subject: emailOptions.subject,
+    text: emailOptions.text,
+    html: emailOptions.html,
   });
 
-  try {
-    await transporter.sendMail(emailOptions);
+  if (error) {
+    console.error(`Error sending email via Engageo: ${error.message}`);
+  } else {
     console.log(`Email sent to ${emailOptions.to}`);
-    return Promise.resolve(console.log(`Email sent to ${emailOptions.to}`));
-  } catch (error: any | Error) {
-    console.error(`Error occurred while sending email: ${error.message}`);
   }
 }

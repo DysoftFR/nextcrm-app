@@ -71,19 +71,19 @@ export const auth = betterAuth({
       sendVerificationOTP: async ({ email, otp, type }) => {
         try {
           const resend = await resendHelper();
-          await resend.emails.send({
+          const { error } = await resend.emails.send({
             from: `${process.env.NEXT_PUBLIC_APP_NAME} <${process.env.EMAIL_FROM}>`,
             to: email,
             subject: `Your verification code: ${otp}`,
             text: `Your one-time verification code is: ${otp}\n\nThis code expires in 5 minutes.\n\nIf you did not request this, please ignore this email.`,
           });
-        } catch (e) {
-          // In dev/test, email sending may fail — OTP is captured by testUtils plugin
-          if (process.env.NODE_ENV !== "production") {
-            console.log(`[Auth] OTP email send failed for ${email}, but captured by testUtils`);
-          } else {
-            throw e;
+          if (error) {
+            console.error(`[Auth] OTP email send failed for ${email}:`, error.message);
+            if (process.env.NODE_ENV === "production") throw error;
           }
+        } catch (e: any) {
+          console.error(`[Auth] OTP email exception for ${email}:`, e?.message ?? e);
+          if (process.env.NODE_ENV === "production") throw e;
         }
       },
     }),
