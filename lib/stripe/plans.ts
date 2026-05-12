@@ -21,6 +21,11 @@ export type BiscoitoPlan = {
 const CACHE_TTL_MS = 5 * 60 * 1000;
 let cachedPlans: { data: BiscoitoPlan[]; expiresAt: number } | null = null;
 
+function getBiscoitoProductFilter(): string | undefined {
+  const productId = process.env.STRIPE_BISCOITO_PRODUCT_ID?.trim().replace(/^["']|["']$/g, "");
+  return productId?.startsWith("prod_") ? productId : undefined;
+}
+
 function isProduct(product: string | Stripe.Product | Stripe.DeletedProduct): product is Stripe.Product {
   return typeof product !== "string" && !("deleted" in product);
 }
@@ -50,7 +55,7 @@ export async function listBiscoitoPlans(): Promise<BiscoitoPlan[]> {
   const now = Date.now();
   if (cachedPlans && cachedPlans.expiresAt > now) return cachedPlans.data;
 
-  const product = process.env.STRIPE_BISCOITO_PRODUCT_ID || undefined;
+  const product = getBiscoitoProductFilter();
   const prices = await getStripeClient().prices.list({
     active: true,
     type: "recurring",

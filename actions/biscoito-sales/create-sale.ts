@@ -33,6 +33,11 @@ function getExpandedProduct(price: Awaited<ReturnType<typeof retrieveBiscoitoPri
   return product;
 }
 
+function getAllowedProductId(): string | undefined {
+  const productId = process.env.STRIPE_BISCOITO_PRODUCT_ID?.trim().replace(/^["']|["']$/g, "");
+  return productId?.startsWith("prod_") ? productId : undefined;
+}
+
 async function getUniquePromoCode(): Promise<string> {
   return generateUniqueBiscoitoPromoCode(async (promoCode) => {
     const existing = await prismadb.crm_BiscoitoSales.findUnique({
@@ -66,7 +71,7 @@ const handler = async (input: CreateBiscoitoSaleInput): Promise<ActionReturn> =>
     return { error: "Selected Stripe plan is not available" };
   }
 
-  const allowedProductId = process.env.STRIPE_BISCOITO_PRODUCT_ID;
+  const allowedProductId = getAllowedProductId();
   if (allowedProductId && product.id !== allowedProductId) {
     return { error: "Selected Stripe plan is not available for Biscoito sales" };
   }
