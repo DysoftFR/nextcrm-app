@@ -919,6 +919,19 @@ enum AppRole {
   admin
 }
 
+enum BiscoitoDiscountType {
+  NONE
+  PERCENT
+  AMOUNT
+}
+
+enum BiscoitoSaleStatus {
+  PENDING
+  PAID
+  CANCELLED
+  EXPIRED
+}
+
 model Users {
   id               String       @id @default(uuid()) @db.Uuid
   v                Int          @default(0) @map("__v")
@@ -979,6 +992,7 @@ model Users {
   invoiceAttachments           Invoice_Attachments[] @relation("InvoiceAttachmentUploadedBy")
   invoiceActivity              Invoice_Activity[]    @relation("InvoiceActivityActor")
   onboarding                   UserOnboarding?
+  biscoitoSales                crm_BiscoitoSales[]   @relation("BiscoitoSalesSeller")
 
   @@index([email])
   @@index([userStatus])
@@ -986,6 +1000,41 @@ model Users {
   @@index([role])
   @@index([created_on])
   @@index([lastLoginAt])
+}
+
+model crm_BiscoitoSales {
+  id                    String               @id @default(uuid()) @db.Uuid
+  sellerId              String               @db.Uuid
+  targetPriceId         String
+  stripeProductId       String
+  stripeProductName     String?
+  stripePriceNickname   String?
+  stripeUnitAmount      Int?
+  stripeCouponId        String
+  stripePromotionCodeId String               @unique
+  promoCode             String               @unique
+  discountType          BiscoitoDiscountType
+  discountValue         Int
+  currency              String               @db.VarChar(3)
+  status                BiscoitoSaleStatus   @default(PENDING)
+  paidAt                DateTime?
+  cancelledAt           DateTime?
+  expiresAt             DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  seller Users @relation("BiscoitoSalesSeller", fields: [sellerId], references: [id])
+
+  @@index([sellerId])
+  @@index([status])
+  @@index([targetPriceId])
+  @@index([createdAt])
+}
+
+model crm_StripeWebhookEvents {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
 }
 
 model UserOnboarding {
