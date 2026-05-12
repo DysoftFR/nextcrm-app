@@ -20,6 +20,7 @@ type Props = {
     opportunities: string;
     contracts: string;
     products: string;
+    biscoitoSales: string;
   };
 };
 
@@ -63,6 +64,10 @@ export const getCrmMenuItem = ({ localizations }: Props): NavItem => {
       {
         title: localizations.products,
         url: "/crm/products",
+      },
+      {
+        title: localizations.biscoitoSales,
+        url: "/biscoito-sales",
       },
     ],
   };
