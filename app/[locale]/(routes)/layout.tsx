@@ -84,6 +84,7 @@ export default async function AppLayout({
       products: dict("crm.products"),
       targets: dict("crm.targets"),
       targetLists: dict("crm.targetLists"),
+      biscoitoSales: dict("crm.biscoitoSales"),
     },
     projects: dict("projects"),
     emails: dict("emails"),
