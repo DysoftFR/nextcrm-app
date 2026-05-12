@@ -22,6 +22,21 @@ export async function requireAuthenticated(): Promise<AuthzUser> {
   return { id: dbUser.id, role: mapLegacyRole(dbUser.role) };
 }
 
+export async function requireActiveAuthenticated(): Promise<AuthzUser> {
+  const session = await getSession();
+  const userId = session?.user?.id;
+  if (!userId) throw new AuthenticationError();
+
+  const dbUser = await prismadb.users.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true, userStatus: true },
+  });
+  if (!dbUser) throw new AuthenticationError();
+  if (dbUser.userStatus !== "ACTIVE") throw new AuthorizationError();
+
+  return { id: dbUser.id, role: mapLegacyRole(dbUser.role) };
+}
+
 export async function requireRole(
   allowedRoles: ReadonlyArray<AppRole>
 ): Promise<AuthzUser> {

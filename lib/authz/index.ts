@@ -9,6 +9,7 @@ export {
 export type { AuthzUser } from "./session";
 export {
   requireAuthenticated,
+  requireActiveAuthenticated,
   requireRole,
   isAdmin,
   isManagerOrAdmin,
