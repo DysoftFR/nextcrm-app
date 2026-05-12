@@ -16,6 +16,8 @@ export type BiscoitoSaleSummary = {
   stripeProductName: string | null;
   stripePriceNickname: string | null;
   stripeUnitAmount: number | null;
+  stripeCouponId: string;
+  stripePromotionCodeId: string;
   discountType: string;
   discountValue: number;
   currency: string;
@@ -52,6 +54,8 @@ function toSummary(sale: SaleWithSeller, viewerId: string, isAdmin: boolean): Bi
     stripeProductName: sale.stripeProductName,
     stripePriceNickname: sale.stripePriceNickname,
     stripeUnitAmount: sale.stripeUnitAmount,
+    stripeCouponId: sale.stripeCouponId,
+    stripePromotionCodeId: sale.stripePromotionCodeId,
     discountType: sale.discountType,
     discountValue: sale.discountValue,
     currency: sale.currency,
