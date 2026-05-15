@@ -14,6 +14,7 @@ import contactTypesData from "../initial-data/crm_Contact_Types.json";
 import leadSourcesData from "../initial-data/crm_Lead_Sources.json";
 import leadStatusesData from "../initial-data/crm_Lead_Statuses.json";
 import leadTypesData from "../initial-data/crm_Lead_Types.json";
+import accountStatusesData from "../initial-data/crm_Account_Statuses.json";
 
 import { seedCurrencies } from "./currencies";
 import { seedInvoices } from "./invoices";
@@ -119,6 +120,10 @@ async function main() {
   // CRM Lead Types (has @unique on name — can use upsert)
   await upsertByName(prisma.crm_Lead_Types, leadTypesData);
   console.log("Lead Types seeded");
+
+  // CRM Account Statuses (has @unique on name — can use upsert)
+  await upsertByName(prisma.crm_Account_Statuses, accountStatusesData);
+  console.log("Account Statuses seeded");
 
   // Test User for E2E Testing
   const testUserEmail = process.env.TEST_USER_EMAIL || "test@nextcrm.app";

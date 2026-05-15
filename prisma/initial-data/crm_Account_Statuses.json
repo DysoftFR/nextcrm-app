@@ -1,0 +1,7 @@
+[
+  { "name": "Active" },
+  { "name": "Inactive" },
+  { "name": "Customer" },
+  { "name": "Prospect" },
+  { "name": "Lost" }
+]

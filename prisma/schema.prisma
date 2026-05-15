@@ -38,6 +38,7 @@ model crm_Accounts {
   shipping_state       String?
   shipping_street      String?
   status               String?   @default("Inactive")
+  account_status_id    String?   @db.Uuid
   type                 String?   @default("Customer")
   vat                  String?
   website              String?
@@ -53,6 +54,7 @@ model crm_Accounts {
   crm_accounts_tasks crm_Accounts_Tasks[]
   contracts          crm_Contracts[]
   documents          DocumentsToAccounts[]
+  account_status     crm_Account_Statuses? @relation("account_status_relation", fields: [account_status_id], references: [id])
   watchers           AccountWatchers[]
   embedding          crm_Embeddings_Accounts?
   emails             EmailsToAccounts[]
@@ -64,6 +66,7 @@ model crm_Accounts {
   @@index([createdBy])
   @@index([updatedBy])
   @@index([status])
+  @@index([account_status_id])
   @@index([type])
   @@index([createdAt])
   @@index([deletedAt])
@@ -426,10 +429,21 @@ model crm_Lead_Sources {
 }
 
 model crm_Lead_Statuses {
-  id    String      @id @default(uuid()) @db.Uuid
-  v     Int         @default(0) @map("__v")
-  name  String      @unique
-  leads crm_Leads[] @relation("lead_status_relation")
+  id        String                    @id @default(uuid()) @db.Uuid
+  v         Int                       @default(0) @map("__v")
+  name      String                    @unique
+  leads     crm_Leads[]               @relation("lead_status_relation")
+  documents DocumentsToLeadStatuses[]
+
+  @@index([name])
+}
+
+model crm_Account_Statuses {
+  id        String                       @id @default(uuid()) @db.Uuid
+  v         Int                          @default(0) @map("__v")
+  name      String                       @unique
+  accounts  crm_Accounts[]               @relation("account_status_relation")
+  documents DocumentsToAccountStatuses[]
 
   @@index([name])
 }
@@ -733,20 +747,22 @@ model Documents {
   deletedAt          DateTime?
   deletedBy          String?                  @db.Uuid
 
-  created_by           Users?                        @relation("created_by_user", fields: [created_by_user], references: [id])
-  assigned_to_user     Users?                        @relation("assigned_to_user", fields: [assigned_user], references: [id])
-  documents_type       Documents_Types?              @relation(fields: [document_type], references: [id])
-  document_system_type DocumentSystemType?           @default(OTHER)
-  opportunities        DocumentsToOpportunities[]
-  contacts             DocumentsToContacts[]
-  tasks                DocumentsToTasks[]
-  crm_accounts_tasks   DocumentsToCrmAccountsTasks[]
-  leads                DocumentsToLeads[]
-  accounts             DocumentsToAccounts[]
-  parent_document      Documents?                    @relation("DocumentVersions", fields: [parent_document_id], references: [id])
-  child_versions       Documents[]                   @relation("DocumentVersions")
-  chunks               crm_Document_Chunks[]
-  embedding_record     crm_Embeddings_Documents?
+  created_by               Users?                        @relation("created_by_user", fields: [created_by_user], references: [id])
+  assigned_to_user         Users?                        @relation("assigned_to_user", fields: [assigned_user], references: [id])
+  documents_type           Documents_Types?              @relation(fields: [document_type], references: [id])
+  document_system_type     DocumentSystemType?           @default(OTHER)
+  opportunities            DocumentsToOpportunities[]
+  contacts                 DocumentsToContacts[]
+  tasks                    DocumentsToTasks[]
+  crm_accounts_tasks       DocumentsToCrmAccountsTasks[]
+  leads                    DocumentsToLeads[]
+  accounts                 DocumentsToAccounts[]
+  account_status_bindings  DocumentsToAccountStatuses[]
+  lead_status_bindings     DocumentsToLeadStatuses[]
+  parent_document          Documents?                    @relation("DocumentVersions", fields: [parent_document_id], references: [id])
+  child_versions           Documents[]                   @relation("DocumentVersions")
+  chunks                   crm_Document_Chunks[]
+  embedding_record         crm_Embeddings_Documents?
 
   @@index([created_by_user])
   @@index([assigned_user])
@@ -1233,6 +1249,30 @@ model DocumentsToAccounts {
   @@id([document_id, account_id])
   @@index([document_id])
   @@index([account_id])
+}
+
+model DocumentsToAccountStatuses {
+  document_id       String @db.Uuid
+  account_status_id String @db.Uuid
+
+  document Documents            @relation(fields: [document_id], references: [id], onDelete: Cascade)
+  status   crm_Account_Statuses @relation(fields: [account_status_id], references: [id], onDelete: Cascade)
+
+  @@id([document_id, account_status_id])
+  @@index([document_id])
+  @@index([account_status_id])
+}
+
+model DocumentsToLeadStatuses {
+  document_id    String @db.Uuid
+  lead_status_id String @db.Uuid
+
+  document Documents         @relation(fields: [document_id], references: [id], onDelete: Cascade)
+  status   crm_Lead_Statuses @relation(fields: [lead_status_id], references: [id], onDelete: Cascade)
+
+  @@id([document_id, lead_status_id])
+  @@index([document_id])
+  @@index([lead_status_id])
 }
 
 // Watchers junction tables (2 tables)
