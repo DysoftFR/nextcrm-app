@@ -16,4 +16,14 @@ export const minioClient = new S3Client({
 });
 
 export const MINIO_BUCKET = process.env.MINIO_BUCKET;
-export const MINIO_PUBLIC_URL = process.env.NEXT_PUBLIC_MINIO_ENDPOINT;
+export const MINIO_PUBLIC_URL = process.env.NEXT_PUBLIC_MINIO_ENDPOINT
+
+export const minioSigningClient = new S3Client({
+  endpoint: process.env.NEXT_PUBLIC_MINIO_ENDPOINT ?? process.env.MINIO_ENDPOINT,
+  region: "us-east-1",
+  credentials: {
+    accessKeyId: process.env.MINIO_ACCESS_KEY,
+    secretAccessKey: process.env.MINIO_SECRET_KEY,
+  },
+  forcePathStyle: true,
+});;
