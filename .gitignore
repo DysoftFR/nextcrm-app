@@ -38,6 +38,7 @@ yarn-error.log*
 .env.xmation
 .env.dev
 .env
+.env.production
 .env.test.coolify
 
 # vercel
@@ -49,6 +50,9 @@ next-env.d.ts
 
 # migration logs (may contain secrets)
 migration-errors.log
+
+# setup-prod build log
+scripts/.setup-prod.log
 
 # backups
 backups/

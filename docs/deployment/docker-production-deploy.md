@@ -51,6 +51,22 @@ Key entrypoint (`docker-entrypoint.sh`):
 
 ---
 
+## Quick start (one command)
+
+For a fresh host that has Docker installed, the `setup-prod.sh` script automates everything below — env file generation (with auto-generated secrets), image build, stack startup, healthcheck wait, and smoke verification:
+
+```bash
+bun run setup:prod \
+  --domain https://crm.example.com \
+  --admin-email ops@example.com
+```
+
+Run with `--non-interactive` for unattended/CI use, `--rotate-secrets` to regenerate all auto-managed secrets, or `bash scripts/setup-prod.sh --help` for the full flag list. Generated values are written to `.env.production` (mode `0600`, gitignored).
+
+The remaining sections of this document describe the underlying manual procedure the script automates — read them when debugging the script, externalizing services, or doing a custom deployment.
+
+---
+
 ## 3. Initial host setup
 
 ```bash

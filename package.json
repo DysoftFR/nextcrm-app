@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "local:setup": "bun run infra:up && bun run db:generate && bun run db:migrate && bun run db:seed",
+    "setup:prod": "bash scripts/setup-prod.sh",
     "postinstall": "prisma generate || true",
     "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
