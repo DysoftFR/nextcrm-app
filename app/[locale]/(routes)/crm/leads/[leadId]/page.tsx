@@ -7,6 +7,8 @@ import DocumentsView from "../../components/DocumentsView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HistoryTab } from "./components/HistoryTab";
 import { ActivitiesSection } from "./components/ActivitiesSection";
+import { getDocumentsByLeadId } from "@/actions/documents/get-documents-by-leadId";
+import { getStatusDocumentsByLeadId } from "@/actions/documents/get-status-documents-by-leadId";
 
 interface LeadDetailPageProps {
   params: Promise<{
@@ -17,7 +19,11 @@ interface LeadDetailPageProps {
 const LeadDetailPage = async (props: LeadDetailPageProps) => {
   const params = await props.params;
   const { leadId } = params;
-  const lead: any = await getLead(leadId);
+  const [lead, leadDocuments, statusDocs] = await Promise.all([
+    getLead(leadId),
+    getDocumentsByLeadId(leadId),
+    getStatusDocumentsByLeadId(leadId),
+  ]);
 
   if (!lead) return <div>Lead not found</div>;
 
@@ -36,7 +42,15 @@ const LeadDetailPage = async (props: LeadDetailPageProps) => {
             <BasicView data={lead} />
             <ActivitiesSection leadId={lead.id} />
             <FindSimilarButton entityType="lead" recordId={leadId} />
-            {/*         <DocumentsView data={lead?.documents} /> */}
+            <DocumentsView data={leadDocuments} title="Attached" />
+            {statusDocs.statusName && (
+              <DocumentsView
+                data={statusDocs.documents}
+                title={`For ${statusDocs.statusName} status`}
+                readOnly
+                emptyMessage={`No documents configured for ${statusDocs.statusName} status`}
+              />
+            )}
           </div>
         </TabsContent>
         <TabsContent value="history">

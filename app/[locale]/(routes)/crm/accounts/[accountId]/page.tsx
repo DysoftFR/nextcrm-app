@@ -9,6 +9,7 @@ import { getOpportunitiesFullByAccountId } from "@/actions/crm/get-opportunities
 import { getContactsByAccountId } from "@/actions/crm/get-contacts-by-accountId";
 import { getLeadsByAccountId } from "@/actions/crm/get-leads-by-accountId";
 import { getDocumentsByAccountId } from "@/actions/documents/get-documents-by-accountId";
+import { getStatusDocumentsByAccountId } from "@/actions/documents/get-status-documents-by-accountId";
 import { getContractsByAccountId } from "@/actions/crm/get-contracts";
 import { getAccountProducts } from "@/actions/crm/account-products/get-account-products";
 import { getProductsFull } from "@/actions/crm/products/get-products";
@@ -24,7 +25,6 @@ import DocumentsView from "../../components/DocumentsView";
 import InvoicesView from "../../components/InvoicesView";
 
 import {
-  Documents,
   crm_Accounts,
   crm_Accounts_Tasks,
   crm_Contacts,
@@ -58,7 +58,10 @@ const AccountDetailPage = async (props: AccountDetailPageProps) => {
     await getContractsByAccountId(accountId)
   );
   const leads: crm_Leads[] = await getLeadsByAccountId(accountId);
-  const documents: Documents[] = await getDocumentsByAccountId(accountId);
+  const [documents, statusDocs] = await Promise.all([
+    getDocumentsByAccountId(accountId),
+    getStatusDocumentsByAccountId(accountId),
+  ]);
   const tasks: crm_Accounts_Tasks[] = await getAccountsTasks(accountId);
   const invoices = await getInvoicesByAccountId(accountId);
   const t = await getTranslations("InvoicesPage");
@@ -129,7 +132,19 @@ const AccountDetailPage = async (props: AccountDetailPageProps) => {
               crmData={crmData}
               activeProducts={activeProducts}
             />
-            <DocumentsView data={documents} accountId={accountId} />
+            <DocumentsView
+              data={documents}
+              accountId={accountId}
+              title="Attached"
+            />
+            {statusDocs.statusName && (
+              <DocumentsView
+                data={statusDocs.documents}
+                title={`For ${statusDocs.statusName} status`}
+                readOnly
+                emptyMessage={`No documents configured for ${statusDocs.statusName} status`}
+              />
+            )}
             <InvoicesView
               data={JSON.parse(JSON.stringify(invoices))}
               accountId={accountId}

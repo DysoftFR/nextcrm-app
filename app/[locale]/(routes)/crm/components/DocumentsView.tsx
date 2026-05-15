@@ -17,9 +17,18 @@ import { useRouter } from "next/navigation";
 interface DocumentsViewProps {
   data: any;
   accountId?: string;
+  title?: string;
+  readOnly?: boolean;
+  emptyMessage?: string;
 }
 
-const DocumentsView = ({ data, accountId }: DocumentsViewProps) => {
+const DocumentsView = ({
+  data,
+  accountId,
+  title = "Documents",
+  readOnly = false,
+  emptyMessage = "No assigned documents found",
+}: DocumentsViewProps) => {
   const router = useRouter();
 
   return (
@@ -31,21 +40,21 @@ const DocumentsView = ({ data, accountId }: DocumentsViewProps) => {
               onClick={() => router.push("/documents")}
               className="cursor-pointer"
             >
-              Documents
+              {title}
             </CardTitle>
             <CardDescription></CardDescription>
           </div>
           <div className="flex space-x-2">
-            {accountId && <BulkUploadModal accountId={accountId} />}
+            {!readOnly && accountId && <BulkUploadModal accountId={accountId} />}
           </div>
         </div>
         <Separator />
       </CardHeader>
       <CardContent>
         {!data || data.length === 0 ? (
-          "No assigned documents found"
+          emptyMessage
         ) : (
-          <DocumentsDataTable data={data} columns={columns} />
+          <DocumentsDataTable data={data} columns={columns} readOnly={readOnly} />
         )}
       </CardContent>
     </Card>
