@@ -1,11 +1,16 @@
 jest.mock("@/lib/auth-server", () => ({ getSession: jest.fn() }));
-jest.mock("@/lib/prisma", () => ({
-  prismadb: {
+jest.mock("@/lib/prisma", () => {
+  const mock: any = {
     users: { findUnique: jest.fn() },
     documents: { create: jest.fn(), findFirst: jest.fn() },
     crm_Accounts: { findFirst: jest.fn() },
-  },
-}));
+    crm_AuditLog: { create: jest.fn() },
+    documentsToAccountStatuses: { createMany: jest.fn() },
+    documentsToLeadStatuses: { createMany: jest.fn() },
+  };
+  mock.$transaction = jest.fn(async (cb: (tx: any) => Promise<unknown>) => cb(mock));
+  return { prismadb: mock };
+});
 jest.mock("next/cache", () => ({ revalidatePath: jest.fn() }));
 jest.mock("@/inngest/client", () => ({
   inngest: { send: jest.fn().mockResolvedValue(undefined) },
@@ -65,5 +70,75 @@ describe("createDocument auth", () => {
     expect(where.id).toBe("a1");
     expect(where.OR).toBeUndefined();
     expect(prismadb.documents.create).toHaveBeenCalled();
+  });
+});
+
+describe("createDocument status bindings", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const prisma = prismadb as any;
+
+  it("admin: persists account_status_ids and lead_status_ids in dedicated join tables", async () => {
+    mockUser("admin", "admin1");
+    prisma.documents.create.mockResolvedValue({ id: "doc1" });
+
+    await createDocument({
+      ...baseInput,
+      account_status_ids: ["acct-status-1", "acct-status-2"],
+      lead_status_ids: ["lead-status-1"],
+    });
+
+    expect(prisma.documentsToAccountStatuses.createMany).toHaveBeenCalledWith({
+      data: [
+        { document_id: "doc1", account_status_id: "acct-status-1" },
+        { document_id: "doc1", account_status_id: "acct-status-2" },
+      ],
+    });
+    expect(prisma.documentsToLeadStatuses.createMany).toHaveBeenCalledWith({
+      data: [{ document_id: "doc1", lead_status_id: "lead-status-1" }],
+    });
+  });
+
+  it("non-admin (user): silently strips status binding fields", async () => {
+    mockUser("user", "u1");
+    prisma.documents.create.mockResolvedValue({ id: "doc2" });
+
+    await createDocument({
+      ...baseInput,
+      account_status_ids: ["acct-status-1"],
+      lead_status_ids: ["lead-status-1"],
+    });
+
+    expect(prisma.documents.create).toHaveBeenCalled();
+    expect(prisma.documentsToAccountStatuses.createMany).not.toHaveBeenCalled();
+    expect(prisma.documentsToLeadStatuses.createMany).not.toHaveBeenCalled();
+  });
+
+  it("non-admin (manager): silently strips status binding fields", async () => {
+    mockUser("manager", "m1");
+    prisma.documents.create.mockResolvedValue({ id: "doc3" });
+
+    await createDocument({
+      ...baseInput,
+      account_status_ids: ["acct-status-1"],
+    });
+
+    expect(prisma.documents.create).toHaveBeenCalled();
+    expect(prisma.documentsToAccountStatuses.createMany).not.toHaveBeenCalled();
+  });
+
+  it("admin with empty arrays: does not write to join tables", async () => {
+    mockUser("admin", "admin1");
+    prisma.documents.create.mockResolvedValue({ id: "doc4" });
+
+    await createDocument({
+      ...baseInput,
+      account_status_ids: [],
+      lead_status_ids: [],
+    });
+
+    expect(prisma.documentsToAccountStatuses.createMany).not.toHaveBeenCalled();
+    expect(prisma.documentsToLeadStatuses.createMany).not.toHaveBeenCalled();
   });
 });
