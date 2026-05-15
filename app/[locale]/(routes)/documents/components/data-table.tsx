@@ -35,16 +35,18 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   accounts?: { id: string; name: string }[];
+  readOnly?: boolean;
 }
 
 export function DocumentsDataTable<TData, TValue>({
   columns,
   data,
   accounts,
+  readOnly = false,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>(readOnly ? { select: false, actions: false } : {});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -84,7 +86,9 @@ export function DocumentsDataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       <DataTableToolbar table={table} />
-      <BatchActionsBar table={table as unknown as TanstackTable<DocumentRow>} accounts={accounts ?? []} />
+      {!readOnly && (
+        <BatchActionsBar table={table as unknown as TanstackTable<DocumentRow>} accounts={accounts ?? []} />
+      )}
       <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>

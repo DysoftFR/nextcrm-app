@@ -23,6 +23,20 @@ export const documentSchema = z.object({
       name: z.string(),
     }),
   })).optional(),
+  account_status_bindings: z.array(z.object({
+    account_status_id: z.string(),
+    status: z.object({
+      id: z.string(),
+      name: z.string(),
+    }).optional(),
+  })).optional(),
+  lead_status_bindings: z.array(z.object({
+    lead_status_id: z.string(),
+    status: z.object({
+      id: z.string(),
+      name: z.string(),
+    }).optional(),
+  })).optional(),
 });
 
 export type DocumentRow = z.infer<typeof documentSchema>;
