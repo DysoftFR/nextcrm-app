@@ -424,6 +424,83 @@ docker compose exec postgres psql -U nextcrm -d nextcrm \
 
 Use that OTP on the sign-in page. After login, configure an email provider from the Admin panel so future logins work normally.
 
+## Production Build
+
+For a production deployment (self-hosted server, VM, or Docker host), build the optimized Next.js bundle and run it with the production server.
+
+### Prerequisites
+
+- Node.js `>=22.12.0` (or Bun `>=1.3.0`)
+- PostgreSQL 17+ with the `pgvector` extension enabled and reachable
+- Redis (for caching/rate limiting), S3-compatible object storage, and Inngest (or Inngest Cloud)
+- A populated `.env` file with **production** values — see `.env.example` and `.env.docker` for the full list
+
+### 1. Install dependencies
+
+```sh
+bun install --frozen-lockfile
+# or
+pnpm install --frozen-lockfile
+```
+
+### 2. Configure environment
+
+Set production values in `.env`. At minimum:
+
+```bash
+NODE_ENV=production
+NEXT_PUBLIC_APP_URL=https://your-domain.com
+DATABASE_URL=postgresql://user:password@host:5432/nextcrm
+BETTER_AUTH_SECRET=<long-random-string>
+ADMIN_EMAIL=admin@your-domain.com
+RESEND_API_KEY=re_...          # required for Email OTP login
+```
+
+Generate `BETTER_AUTH_SECRET` with `openssl rand -base64 32`. Use strong, unique secrets for every deployment.
+
+### 3. Build
+
+```sh
+bun run build
+```
+
+The `build` script runs `prisma generate`, applies pending migrations with `prisma migrate deploy`, and then produces the optimized Next.js output in `.next/`.
+
+> Run `bunx prisma db seed` once on a fresh database to load the initial reference data (currencies, tax rates, etc.). Skip this on subsequent deployments.
+
+### 4. Start the production server
+
+```sh
+bun run start
+```
+
+The server listens on port `3000` by default. Put it behind a reverse proxy (nginx, Caddy, Traefik) that terminates TLS and forwards traffic.
+
+### 5. Background jobs (Inngest)
+
+AI embeddings, enrichment, and other async work run through Inngest. In production either:
+
+- Point `INNGEST_EVENT_KEY` and `INNGEST_SIGNING_KEY` at **Inngest Cloud**, or
+- Run a self-hosted Inngest worker that targets `/api/inngest` on your deployment.
+
+### Deploying to Vercel
+
+`vercel deploy --prod` works out of the box — Vercel detects Next.js, runs `bun run build`, and deploys. Add every variable from `.env` to **Project Settings → Environment Variables** (Production scope) before deploying. Database, Redis, storage, and Inngest must be reachable from Vercel's network.
+
+### Deploying with Docker
+
+The bundled `docker-compose.yml` targets local development. For production, either point a managed platform (Coolify, Dokku, Portainer) at this repo — they read the same Compose file and let you override env vars in their UI — or build a slim production image from the `Dockerfile` and run it behind your own reverse proxy with externally managed Postgres/Redis/S3.
+
+### Health check
+
+After deploying, verify:
+
+```sh
+curl -I https://your-domain.com/api/health
+```
+
+A `200 OK` confirms the server is live and the database connection succeeded.
+
 ## Contact
 
 [www.dovhomilja.cz](https://www.dovhomilja.cz)
