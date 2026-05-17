@@ -1,0 +1,72 @@
+# =============================================================================
+# Overlay: deploy NextCRM behind an EXISTING reverse proxy on the same host.
+# =============================================================================
+#
+# Use this overlay when another nginx / Traefik / Caddy container (managed by a
+# separate compose stack on the same VPS) already terminates TLS on :80/:443
+# and you want it — not the bundled `nginx` service — to proxy traffic into the
+# NextCRM `app-production` container.
+#
+# Prerequisites:
+#   - Set EXTERNAL_NETWORK=<name> in your env file (e.g. EXTERNAL_NETWORK=biscoito).
+#     This must be an existing Docker network the external proxy is attached to:
+#         docker network ls
+#   - The external proxy reaches the app by Docker DNS at:
+#         http://<compose-project-name>-app-production-1:3000
+#     (project name = directory name unless overridden with `-p`).
+#
+# Usage:
+#   docker compose \
+#     -f docker-compose.yml \
+#     -f docker-compose.external-proxy.yml \
+#     --env-file .env.production \
+#     --profile production \
+#     up -d postgres redis minio minio-init inngest app-production
+#
+# Or via the helper script:
+#   bun run setup:prod --domain https://crm.example.com \
+#     --admin-email ops@example.com \
+#     --external-network biscoito
+#
+# Effects vs the base compose file:
+#   - Public host port bindings on postgres / redis / inngest are dropped
+#     (no longer reachable from outside the host).
+#   - MinIO ports are bound to 127.0.0.1 only (loopback admin access, no
+#     internet exposure). Set MINIO_API_PORT=0 / MINIO_CONSOLE_PORT=0 to omit
+#     entirely if your proxy proxies MinIO uploads.
+#   - `app-production` joins both the internal `nextcrm` network AND the
+#     external proxy network so a sibling proxy container can reach it.
+#   - Bundled `nginx` service is moved to a `disabled` profile so it never
+#     starts (would collide with the external proxy on :80/:443).
+# =============================================================================
+
+services:
+  postgres:
+    ports: !reset []
+
+  redis:
+    ports: !reset []
+
+  minio:
+    ports: !override
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+
+  inngest:
+    ports: !reset []
+
+  app-production:
+    networks:
+      - nextcrm
+      - external_proxy
+
+  nginx:
+    # !override replaces the inherited profiles list (which contains
+    # "production"). Without it, profiles merge and the service still
+    # starts under --profile production.
+    profiles: !override ["disabled"]
+
+networks:
+  external_proxy:
+    name: ${EXTERNAL_NETWORK:?EXTERNAL_NETWORK must be set when using docker-compose.external-proxy.yml}
+    external: true

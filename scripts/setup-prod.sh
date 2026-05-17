@@ -54,6 +54,7 @@ GOOGLE_SECRET=""
 ENGAGEO_KEY=""
 INNGEST_EVENT_KEY=""
 INNGEST_SIGNING_KEY=""
+EXTERNAL_NETWORK=""
 
 NON_INTERACTIVE=0
 SKIP_BUILD=0
@@ -74,6 +75,7 @@ GOOGLE_SECRET="${GOOGLE_SECRET:-}"
 ENGAGEO_KEY="${ENGAGEO_MESSAGING_API_KEY:-${ENGAGEO_KEY:-}}"
 INNGEST_EVENT_KEY="${INNGEST_EVENT_KEY:-local}"
 INNGEST_SIGNING_KEY="${INNGEST_SIGNING_KEY:-}"
+EXTERNAL_NETWORK="${EXTERNAL_NETWORK:-}"
 
 # --------------------------------------------------------------------- ui ---
 COLOR_RESET="\033[0m"
@@ -115,6 +117,12 @@ Optional integrations (left empty if omitted):
   --inngest-event-key VAL         INNGEST_EVENT_KEY (default: local)
   --inngest-signing-key VAL       INNGEST_SIGNING_KEY
 
+Reverse-proxy integration (deploy behind an existing nginx/Traefik on this host):
+  --external-network NAME         EXTERNAL_NETWORK; layers in
+                                  docker-compose.external-proxy.yml so the
+                                  bundled nginx is disabled, public ports are
+                                  dropped, and app-production joins NAME.
+
 Flow control:
   --non-interactive               Fail if any required input is missing
   --skip-build                    Do not build the production image
@@ -142,6 +150,7 @@ parse_args() {
       --engageo-key)          ENGAGEO_KEY="${2:-}"; shift 2 ;;
       --inngest-event-key)    INNGEST_EVENT_KEY="${2:-}"; shift 2 ;;
       --inngest-signing-key)  INNGEST_SIGNING_KEY="${2:-}"; shift 2 ;;
+      --external-network)     EXTERNAL_NETWORK="${2:-}"; shift 2 ;;
       --env-file)             ENV_FILE="${2:-}"; shift 2 ;;
       --non-interactive)      NON_INTERACTIVE=1; shift ;;
       --skip-build)           SKIP_BUILD=1; shift ;;
@@ -223,6 +232,7 @@ load_existing_secrets() {
   : "${MINIO_ROOT_PASSWORD:=$(read_env_value "$ENV_FILE" MINIO_ROOT_PASSWORD)}"
   : "${MINIO_SECRET_KEY:=$(read_env_value "$ENV_FILE" MINIO_SECRET_KEY)}"
   : "${ADMIN_EMAIL:=$(read_env_value "$ENV_FILE" ADMIN_EMAIL)}"
+  : "${EXTERNAL_NETWORK:=$(read_env_value "$ENV_FILE" EXTERNAL_NETWORK)}"
   # Recover prior DOMAIN from BETTER_AUTH_URL if --domain not given.
   if [[ -z "$DOMAIN" ]]; then
     DOMAIN="$(read_env_value "$ENV_FILE" BETTER_AUTH_URL)"
@@ -330,6 +340,7 @@ write_env_file() {
   add_sub ENGAGEO_KEY           "$ENGAGEO_KEY"
   add_sub INNGEST_EVENT_KEY     "$INNGEST_EVENT_KEY"
   add_sub INNGEST_SIGNING_KEY   "$INNGEST_SIGNING_KEY"
+  add_sub EXTERNAL_NETWORK      "$EXTERNAL_NETWORK"
 
   sed "${sed_args[@]}" "$ENV_EXAMPLE" >"$tmp"
 
@@ -340,8 +351,14 @@ write_env_file() {
 }
 
 # ------------------------------------------------------------------ docker ---
+# Wrapper that auto-layers the external-proxy overlay when EXTERNAL_NETWORK
+# is set. Keeps the bundled-nginx default working unchanged.
 docker_compose() {
-  docker compose --env-file "$ENV_FILE" --profile production "$@"
+  local files=(-f "${REPO_ROOT}/docker-compose.yml")
+  if [[ -n "$EXTERNAL_NETWORK" ]]; then
+    files+=(-f "${REPO_ROOT}/docker-compose.external-proxy.yml")
+  fi
+  docker compose "${files[@]}" --env-file "$ENV_FILE" --profile production "$@"
 }
 
 build_image() {
@@ -355,6 +372,15 @@ build_image() {
 }
 
 bring_up() {
+  if [[ -n "$EXTERNAL_NETWORK" ]]; then
+    if ! docker network inspect "$EXTERNAL_NETWORK" >/dev/null 2>&1; then
+      fail "External network '$EXTERNAL_NETWORK' not found on host."
+      fail "Create it or bring up the owning stack first: docker network ls"
+      exit "$EXIT_PREFLIGHT"
+    fi
+    ok "External network '$EXTERNAL_NETWORK' present."
+  fi
+
   info "Stopping any dev 'app' container that would conflict with app-production"
   docker_compose stop app 2>/dev/null || true
   docker_compose rm -f app 2>/dev/null || true
@@ -443,6 +469,9 @@ main() {
   printf "  Env file:   %s\n" "$ENV_FILE"
   printf "  Admin user: %s\n" "$ADMIN_EMAIL"
   printf "  App URL:    %s\n" "$DOMAIN"
+  if [[ -n "$EXTERNAL_NETWORK" ]]; then
+    printf "  External proxy network: %s (overlay applied)\n" "$EXTERNAL_NETWORK"
+  fi
   printf "\nSecrets live only in %s (mode 0600). Back it up before rotating.\n" "$(basename "$ENV_FILE")"
 }
 

@@ -4,6 +4,8 @@ End-to-end guide for deploying NextCRM in production using the bundled `docker-c
 
 > For deploying to **Vercel** instead, see the "Deploying to Vercel" section of [`README.md`](../../README.md). This document covers self-hosted Docker only.
 
+> Deploying behind an **existing reverse-proxy container** on the same host (so the bundled `nginx` service stays off)? See [`reverse-proxy-existing-nginx.md`](reverse-proxy-existing-nginx.md). The overlay `docker-compose.external-proxy.yml` + `--external-network` flag on `setup-prod.sh` automate the co-tenant pattern.
+
 ---
 
 ## 1. Architecture
