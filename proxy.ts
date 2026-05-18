@@ -15,6 +15,42 @@ const ADMIN_ONLY_PATHS = [
   "/api/admin",
 ];
 
+// Behind a reverse proxy, the Next.js standalone server constructs absolute
+// URLs from its internal listening host:port. next-intl's redirects then leak
+// that internal origin (e.g. "https://sales.example.com:3000/...") because
+// neither the framework nor next-intl honour X-Forwarded-Host by default.
+// Rewrite Location headers to the canonical public origin when one is
+// configured via NEXT_PUBLIC_APP_URL.
+function normalizeLocation(res: NextResponse, req: NextRequest): NextResponse {
+  const location = res.headers.get("location");
+  if (!location) return res;
+
+  const publicOrigin = process.env.NEXT_PUBLIC_APP_URL;
+  if (!publicOrigin) return res;
+
+  let canonical: URL;
+  try {
+    canonical = new URL(publicOrigin);
+  } catch {
+    return res;
+  }
+
+  let target: URL;
+  try {
+    target = new URL(location, req.url);
+  } catch {
+    return res;
+  }
+
+  if (target.protocol !== canonical.protocol || target.host !== canonical.host) {
+    target.protocol = canonical.protocol;
+    target.host = canonical.host;
+    target.port = canonical.port;
+    res.headers.set("location", target.toString());
+  }
+  return res;
+}
+
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
@@ -45,13 +81,16 @@ export async function proxy(req: NextRequest) {
       const authPaths = ["/sign-in", "/register", "/pending", "/inactive"];
       const isAuthPage = authPaths.some((p) => path.includes(p));
       if (!isAuthPage) {
-        return NextResponse.redirect(new URL("/sign-in", req.nextUrl));
+        return normalizeLocation(
+          NextResponse.redirect(new URL("/sign-in", req.nextUrl)),
+          req,
+        );
       }
     }
   }
 
   // Non-API routes — delegate to next-intl
-  return intlMiddleware(req);
+  return normalizeLocation(intlMiddleware(req), req);
 }
 
 export const config = {
