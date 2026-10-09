@@ -27,8 +27,8 @@ export default async function BiscoitoSalesPage({ searchParams }: BiscoitoSalesP
 
   return (
     <Container
-      title="Biscoito Sales"
-      description="Create and manage one-use Stripe coupons for Biscoito subscriptions."
+      title="Bouéla Sales"
+      description="Your portfolio: one-use discount codes for Bouéla merchant plans, and whether they converted."
     >
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

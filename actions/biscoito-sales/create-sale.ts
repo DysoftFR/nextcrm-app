@@ -9,7 +9,7 @@ import {
   AuthorizationError,
   requireActiveAuthenticated,
 } from "@/lib/authz";
-import { retrieveBiscoitoPrice } from "@/lib/stripe/plans";
+import { isSellableBouelaProduct, retrieveBiscoitoPrice } from "@/lib/stripe/plans";
 import {
   createBiscoitoDiscount,
   deactivateBiscoitoPromotionCode,
@@ -19,6 +19,7 @@ import { generateUniqueBiscoitoPromoCode } from "@/lib/stripe/codes";
 import {
   buildBiscoitoShareUrl,
   createBiscoitoSaleSchema,
+  maxAmountOff,
   type CreateBiscoitoSaleInput,
   type CreateBiscoitoSaleOutput,
 } from "./schema";
@@ -73,7 +74,14 @@ const handler = async (input: CreateBiscoitoSaleInput): Promise<ActionReturn> =>
 
   const allowedProductId = getAllowedProductId();
   if (allowedProductId && product.id !== allowedProductId) {
-    return { error: "Selected Stripe plan is not available for Biscoito sales" };
+    return { error: "Selected Stripe plan is not available for Bouéla sales" };
+  }
+  if (!allowedProductId && !isSellableBouelaProduct(product.metadata)) {
+    return { error: "Selected Stripe plan is not a current Bouéla merchant plan" };
+  }
+  const amountCap = maxAmountOff(price.unit_amount);
+  if (input.discountType === "AMOUNT" && amountCap != null && input.discountValue > amountCap) {
+    return { error: `Amount discount cannot exceed ${(amountCap / 100).toFixed(2)} ${price.currency.toUpperCase()}` };
   }
 
   const promoCode = await getUniquePromoCode();

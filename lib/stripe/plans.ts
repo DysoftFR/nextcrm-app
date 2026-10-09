@@ -26,6 +26,19 @@ function getBiscoitoProductFilter(): string | undefined {
   return productId?.startsWith("prod_") ? productId : undefined;
 }
 
+/**
+ * The Stripe account is shared with other projects: only products converged by
+ * the Bouéla backend (metadata.app = biscoito) that are the current version of
+ * a self-serve merchant plan are sellable from the CRM.
+ */
+export function isSellableBouelaProduct(metadata: Record<string, string> | null | undefined): boolean {
+  if (!metadata || metadata.app !== "biscoito") return false;
+  if (metadata.current !== "true") return false;
+  if (metadata.audience && metadata.audience !== "BRAND") return false;
+  if (metadata.hidden === "true" || metadata.internal === "true" || metadata.contact_only === "true") return false;
+  return true;
+}
+
 function isProduct(product: string | Stripe.Product | Stripe.DeletedProduct): product is Stripe.Product {
   return typeof product !== "string" && !("deleted" in product);
 }
@@ -65,8 +78,10 @@ export async function listBiscoitoPlans(): Promise<BiscoitoPlan[]> {
   });
 
   const data = prices.data
+    .filter((price) => product || (isProduct(price.product) && isSellableBouelaProduct(price.product.metadata)))
     .map(toBiscoitoPlan)
-    .filter((plan): plan is BiscoitoPlan => Boolean(plan));
+    .filter((plan): plan is BiscoitoPlan => Boolean(plan))
+    .sort((a, b) => (a.unitAmount ?? 0) - (b.unitAmount ?? 0));
 
   cachedPlans = { data, expiresAt: now + CACHE_TTL_MS };
   return data;
