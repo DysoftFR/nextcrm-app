@@ -1,5 +1,6 @@
 "use client";
 
+import { MAX_DISCOUNT_PERCENT, maxAmountOff } from "@/actions/biscoito-sales/schema";
 import Link from "next/link";
 import { FormEvent, useMemo, useState, useTransition } from "react";
 import useSWR from "swr";
@@ -64,6 +65,10 @@ export function CreateSaleForm() {
     () => plans?.find((plan) => plan.id === targetPriceId) ?? null,
     [plans, targetPriceId]
   );
+  const amountCapMajor = useMemo(() => {
+    const cap = maxAmountOff(selectedPlan?.unitAmount ?? null);
+    return cap == null ? null : String(cap / 100);
+  }, [selectedPlan]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -115,7 +120,7 @@ export function CreateSaleForm() {
               <div className="text-lg font-semibold">{created.promoCode}</div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Payment URL</div>
+              <div className="text-sm text-muted-foreground">Link for the merchant (bouela.com pricing page, code pre-applied)</div>
               <div className="break-all text-sm">{created.shareUrl}</div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -142,7 +147,7 @@ export function CreateSaleForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="grid gap-5">
           <div className="grid gap-2">
-            <Label htmlFor="targetPriceId">Biscoito plan</Label>
+            <Label htmlFor="targetPriceId">Bouéla plan</Label>
             <select
               id="targetPriceId"
               value={targetPriceId}
@@ -185,13 +190,15 @@ export function CreateSaleForm() {
 
           <div className="grid gap-2">
             <Label htmlFor="discountValue">
-              {discountType === "PERCENT" ? "Percent off" : `Amount off${selectedPlan ? ` (${selectedPlan.currency.toUpperCase()})` : ""}`}
+              {discountType === "PERCENT"
+                ? `Percent off (max ${MAX_DISCOUNT_PERCENT}%)`
+                : `Amount off${selectedPlan ? ` (${selectedPlan.currency.toUpperCase()}${amountCapMajor ? `, max ${amountCapMajor}` : ""})` : ""}`}
             </Label>
             <Input
               id="discountValue"
               type="number"
               min="1"
-              max={discountType === "PERCENT" ? "100" : undefined}
+              max={discountType === "PERCENT" ? String(MAX_DISCOUNT_PERCENT) : amountCapMajor ?? undefined}
               step={discountType === "PERCENT" ? "1" : "0.01"}
               value={discountValue}
               onChange={(event) => setDiscountValue(event.target.value)}

@@ -46,7 +46,7 @@ export default async function BiscoitoSaleDetailPage({ params }: BiscoitoSaleDet
   if (!sale) notFound();
 
   return (
-    <Container title={`Coupon ${sale.promoCode}`} description="Biscoito sale details and Stripe references.">
+    <Container title={`Coupon ${sale.promoCode}`} description="Bouéla sale details and Stripe references.">
       <div className="flex max-w-5xl flex-col gap-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Button asChild variant="outline" className="w-fit">

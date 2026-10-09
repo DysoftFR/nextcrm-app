@@ -8,7 +8,7 @@ export default function NewBiscoitoSalePage() {
   return (
     <Container
       title="Create coupon"
-      description="Create a one-use Stripe discount for a selected Biscoito subscription plan."
+      description="Create a one-use discount code for a Bouéla merchant plan and share the link with the merchant."
     >
       <div className="flex max-w-3xl flex-col gap-4">
         <Button asChild variant="outline" className="w-fit">
